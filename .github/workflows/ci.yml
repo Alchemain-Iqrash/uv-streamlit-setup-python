@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install uv
+        run: pip install uv
+      
+      - name: Install dependencies
+        run: uv pip install -e .
+      
+      - name: Install test dependencies
+        run: uv pip install pytest pytest-cov
+      
+      - name: Run unit tests
+        run: uv run pytest tests/test_simple.py -v
+      
+      - name: Run integration tests
+        run: uv run pytest tests/test_integration.py -v
+      
+      - name: Run all tests with coverage
+        run: uv run pytest tests/ --cov=src/myproject --cov-report=term-missing
